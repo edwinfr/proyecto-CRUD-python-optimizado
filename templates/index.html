@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SGE - CRUD de Empleados (Python + jQuery + Bootstrap)</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Google Fonts (Inter) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Custom CSS for a highly-polished premium interface -->
+    <style>
+        :root {
+            --bs-body-font-family: 'Inter', sans-serif;
+            --primary-color: #4f46e5;
+            --primary-hover: #4338ca;
+            --secondary-bg: #f8fafc;
+            --card-border-radius: 16px;
+        }
+
+        body {
+            background-color: #f1f5f9;
+            color: #0f172a;
+            font-family: var(--bs-body-font-family);
+        }
+
+        .navbar-brand-custom {
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .btn-indigo {
+            background-color: var(--primary-color);
+            color: #fff;
+            border: none;
+            font-weight: 600;
+            padding: 0.5rem 1.25rem;
+            border-radius: 10px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-indigo:hover {
+            background-color: var(--primary-hover);
+            color: #fff;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
+        }
+
+        .card-custom {
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            border-radius: var(--card-border-radius);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+            background-color: #ffffff;
+            overflow: hidden;
+        }
+
+        .card-header-custom {
+            background-color: #ffffff;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 1.25rem;
+        }
+
+        .avatar-initials {
+            width: 40px;
+            height: 40px;
+            background-color: #e0e7ff;
+            color: var(--primary-color);
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            border: 1px solid #c7d2fe;
+            text-transform: uppercase;
+        }
+
+        .table-custom th {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #64748b;
+            background-color: #f8fafc;
+            padding: 1rem 1.5rem;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .table-custom td {
+            padding: 1rem 1.5rem;
+            vertical-align: middle;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .badge-role {
+            background-color: #eff6ff;
+            color: #1e40af;
+            border: 1px solid #bfdbfe;
+            font-weight: 600;
+            font-size: 0.75rem;
+            padding: 0.25rem 0.6rem;
+            border-radius: 6px;
+        }
+
+        .search-container {
+            position: relative;
+        }
+
+        .search-container i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            width: 16px;
+            height: 16px;
+        }
+
+        .search-input {
+            padding-left: 36px;
+            border-radius: 10px;
+            border: 1px solid #cbd5e1;
+            font-size: 0.9rem;
+        }
+
+        .search-input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+        }
+
+        .form-control-custom {
+            border-radius: 10px;
+            border: 1px solid #cbd5e1;
+            padding: 0.6rem 0.8rem;
+            font-size: 0.9rem;
+        }
+
+        .form-control-custom:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+        }
+
+        .pagination-container .page-link {
+            border-radius: 8px;
+            margin: 0 2px;
+            color: #475569;
+            border: 1px solid #e2e8f0;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .pagination-container .page-item.active .page-link {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            color: #ffffff;
+        }
+
+        .toast-container-custom {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 1050;
+        }
+
+        .stat-icon {
+            padding: 10px;
+            border-radius: 12px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark py-3 shadow-sm">
+        <div class="container">
+            <a class="navbar-brand navbar-brand-custom d-flex align-items-center gap-2" href="#">
+                <div class="bg-indigo p-1.5 rounded text-white d-inline-flex bg-primary">
+                    <i data-lucide="database" style="width: 20px; height: 20px;"></i>
+                </div>
+                <span>SGE • Gestión de Empleados</span>
+            </a>
+            <span class="navbar-text d-none d-sm-inline-block text-white-50">
+                Backend Flask (Python) + jQuery AJAX + Bootstrap 5
+            </span>
+        </div>
+    </nav>
+
+    <!-- MAIN CONTAINER -->
+    <main class="container py-4 my-2">
+        
+        <!-- STATS BAR -->
+        <section class="row g-3 mb-4">
+            <div class="col-12 col-md-4">
+                <div class="card card-custom p-3 d-flex flex-row align-items-center gap-3">
+                    <div class="stat-icon bg-primary-subtle text-primary">
+                        <i data-lucide="users" style="width: 24px; height: 24px;"></i>
+                    </div>
+                    <div>
+                        <p class="text-uppercase text-muted mb-0 font-monospace" style="font-size: 0.75rem; letter-spacing: 0.5px;">Total Empleados</p>
+                        <h3 class="mb-0 fw-bold" id="stat-total-employees">0</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-md-4">
+                <div class="card card-custom p-3 d-flex flex-row align-items-center gap-3">
+                    <div class="stat-icon bg-success-subtle text-success">
+                        <i data-lucide="briefcase" style="width: 24px; height: 24px;"></i>
+                    </div>
+                    <div>
+                        <p class="text-uppercase text-muted mb-0 font-monospace" style="font-size: 0.75rem; letter-spacing: 0.5px;">Roles/Puestos</p>
+                        <h3 class="mb-0 fw-bold" id="stat-total-roles">0</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-md-4">
+                <div class="card card-custom p-3 d-flex flex-row align-items-center gap-3">
+                    <div class="stat-icon bg-warning-subtle text-warning">
+                        <i data-lucide="refresh-cw" style="width: 24px; height: 24px;"></i>
+                    </div>
+                    <div>
+                        <p class="text-uppercase text-muted mb-0 font-monospace" style="font-size: 0.75rem; letter-spacing: 0.5px;">Modo de Transmisión</p>
+                        <h6 class="mb-0 fw-bold mt-1 text-warning-emphasis">AJAX JSON Nativo</h6>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FILTERS AND ACTION BAR -->
+        <div class="card card-custom p-3 mb-4">
+            <div class="row g-3 align-items-center">
+                <div class="col-12 col-md-5">
+                    <div class="search-container">
+                        <i data-lucide="search"></i>
+                        <input type="text" id="input-buscar" class="form-control search-input" placeholder="Buscar por nombre, correo, teléfono o puesto...">
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-md-3">
+                    <select id="select-puesto-filtro" class="form-select form-control-custom">
+                        <option value="todos">Todos los puestos</option>
+                    </select>
+                </div>
+                <div class="col-12 col-sm-6 col-md-4 text-sm-end text-center">
+                    <button class="btn btn-indigo w-100 w-sm-auto d-inline-flex align-items-center justify-content-center gap-2" id="btn-nuevo-empleado">
+                        <i data-lucide="plus" style="width: 16px; height: 16px;"></i>
+                        <span>Agregar Empleado</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MAIN TABLE & LIST AREA -->
+        <div class="row g-4">
+            <div class="col-12">
+                <div class="card card-custom">
+                    <div class="card-header-custom d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 fw-bold d-flex align-items-center gap-2">
+                            <i data-lucide="list" class="text-primary"></i>
+                            Lista de Empleados Registrados
+                        </h5>
+                        <button class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1" id="btn-recargar">
+                            <i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i>
+                            <span>Sincronizar</span>
+                        </button>
+                    </div>
+                    
+                    <!-- Table Element -->
+                    <div class="table-responsive">
+                        <table class="table table-custom mb-0" id="tabla-empleados">
+                            <thead>
+                                <tr>
+                                    <th>Empleado</th>
+                                    <th>Puesto Laboral</th>
+                                    <th>Contacto</th>
+                                    <th class="text-end">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbody-empleados">
+                                <tr>
+                                    <td colspan="4" class="text-center py-5 text-muted">
+                                        <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
+                                        Cargando registros desde el servidor Flask...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- PAGINATION CONTROL BAR -->
+                    <div class="card-footer bg-light border-top p-3 d-flex flex-column flex-sm-row align-items-center justify-content-between gap-3">
+                        <div class="text-muted" style="font-size: 0.8rem;" id="paginacion-info">
+                            Mostrando registros del 0 al 0 de un total de 0
+                        </div>
+                        
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="d-flex align-items-center gap-1 text-muted" style="font-size: 0.8rem;">
+                                <span>Ver:</span>
+                                <select id="select-limite-paginas" class="form-select form-select-sm" style="width: auto; border-radius: 6px;">
+                                    <option value="5">5</option>
+                                    <option value="10" selected>10</option>
+                                    <option value="20">20</option>
+                                    <option value="50">50</option>
+                                </select>
+                            </div>
+                            
+                            <nav aria-label="Navegacion de paginas">
+                                <ul class="pagination pagination-sm mb-0 pagination-container" id="paginacion-controles">
+                                    <!-- Generado dinámicamente -->
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- FORM MODAL (AGREGAR / MODIFICAR EMPLEADO) -->
+    <div class="modal fade" id="modal-empleado" tabindex="-1" aria-labelledby="modal-empleado-title" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 16px; overflow: hidden;">
+                <div class="modal-header bg-light border-bottom">
+                    <h5 class="modal-title fw-bold text-dark d-flex align-items-center gap-2" id="modal-empleado-title">
+                        <i data-lucide="user-plus" class="text-primary"></i>
+                        <span>Registrar Empleado</span>
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <form id="form-empleado" novalidate>
+                    <div class="modal-body p-4">
+                        <div class="alert alert-danger d-none" id="form-error-alert" role="alert">
+                            Ocurrió un error al procesar el formulario.
+                        </div>
+                        
+                        <input type="hidden" id="input-id" name="id">
+
+                        <!-- Nombre -->
+                        <div class="mb-3">
+                            <label for="input-nombre" class="form-label text-muted text-uppercase font-monospace fw-semibold" style="font-size: 0.75rem;">Nombre Completo</label>
+                            <input type="text" class="form-control form-control-custom" id="input-nombre" required placeholder="Ej. Juan Pérez">
+                            <div class="invalid-feedback">Por favor ingresa el nombre completo del empleado.</div>
+                        </div>
+
+                        <!-- Puesto -->
+                        <div class="mb-3">
+                            <label for="input-puesto" class="form-label text-muted text-uppercase font-monospace fw-semibold" style="font-size: 0.75rem;">Puesto Laboral</label>
+                            <input type="text" class="form-control form-control-custom" id="input-puesto" required placeholder="Ej. Gerente de Ventas, Desarrollador Web">
+                            <div class="invalid-feedback">Ingresa el cargo o puesto laboral que desempeña.</div>
+                        </div>
+
+                        <!-- Correo -->
+                        <div class="mb-3">
+                            <label for="input-correo" class="form-label text-muted text-uppercase font-monospace fw-semibold" style="font-size: 0.75rem;">Correo Electrónico</label>
+                            <input type="email" class="form-control form-control-custom" id="input-correo" required placeholder="Ej. correo@empresa.com">
+                            <div class="invalid-feedback">Ingresa un correo electrónico corporativo válido.</div>
+                        </div>
+
+                        <!-- Teléfono -->
+                        <div class="mb-3">
+                            <label for="input-telefono" class="form-label text-muted text-uppercase font-monospace fw-semibold" style="font-size: 0.75rem;">Número de Teléfono</label>
+                            <input type="text" class="form-control form-control-custom" id="input-telefono" required placeholder="Ej. +52 55 1234 5678">
+                            <div class="invalid-feedback">Ingresa un número telefónico de contacto válido.</div>
+                        </div>
+
+                    </div>
+                    <div class="modal-footer bg-light border-top">
+                        <button type="button" class="btn btn-outline-secondary px-4 py-2" data-bs-dismiss="modal" style="border-radius: 10px;">Cancelar</button>
+                        <button type="submit" class="btn btn-indigo d-flex align-items-center gap-2" id="btn-guardar">
+                            <i data-lucide="check" style="width: 16px; height: 16px;"></i>
+                            <span id="btn-guardar-texto">Guardar</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION SYSTEM -->
+    <div class="toast-container-custom">
+        <div id="toast-notificacion" class="toast align-items-center text-white bg-dark border-0 shadow-lg" role="alert" aria-live="assertive" aria-atomic="true" style="border-radius: 12px;">
+            <div class="d-flex">
+                <div class="toast-body d-flex align-items-center gap-2">
+                    <i data-lucide="bell" id="toast-icon"></i>
+                    <span id="toast-mensaje">Notificación del sistema</span>
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Cerrar"></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- jQuery and Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- AJAX LOGIC USING JQUERY -->
+    <script>
+        $(document).ready(function() {
+            // Inicializar Lucide Icons
+            lucide.createIcons();
+
+            // Variables de Estado
+            let paginaActual = 1;
+            let limitePagina = 10;
+            let puestoFiltro = 'todos';
+            let busquedaFiltro = '';
+            
+            // Instancias de Bootstrap Modales y Toasts
+            const modalEmpleado = new bootstrap.Modal(document.getElementById('modal-empleado'));
+            const toastElement = new bootstrap.Toast(document.getElementById('toast-notificacion'));
+
+            // Función para mostrar alertas rápidas (Toasts)
+            function mostrarToast(mensaje, tipo = 'success') {
+                const $toast = $('#toast-notificacion');
+                $toast.removeClass('bg-dark bg-success bg-danger bg-warning bg-info');
+                
+                let iconName = 'check-circle';
+                if (tipo === 'success') {
+                    $toast.addClass('bg-success');
+                } else if (tipo === 'danger') {
+                    $toast.addClass('bg-danger');
+                    iconName = 'alert-triangle';
+                } else if (tipo === 'warning') {
+                    $toast.addClass('bg-warning text-dark');
+                    iconName = 'alert-circle';
+                } else {
+                    $toast.addClass('bg-dark');
+                }
+                
+                $('#toast-mensaje').text(mensaje);
+                $('#toast-icon').attr('data-lucide', iconName);
+                lucide.createIcons();
+                toastElement.show();
+            }
+
+            // FUNCIÓN PRINCIPAL: Obtener registros mediante petición AJAX GET
+            function cargarEmpleados() {
+                $('#tbody-empleados').html(`
+                    <tr>
+                        <td colspan="4" class="text-center py-5 text-muted">
+                            <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
+                            Buscando registros en base de datos local...
+                        </td>
+                    </tr>
+                `);
+
+                // Ejecutar la llamada AJAX
+                $.ajax({
+                    url: '/api/empleados',
+                    type: 'GET',
+                    data: {
+                        buscar: busquedaFiltro,
+                        puesto: puestoFiltro,
+                        page: paginaActual,
+                        limit: limitePagina
+                    },
+                    dataType: 'json',
+                    success: function(respuesta) {
+                        if (respuesta.status === 'success') {
+                            const empleados = respuesta.data;
+                            const total = respuesta.total_records;
+                            const totalPaginas = respuesta.total_pages;
+                            
+                            // Actualizar estadísticas del Dashboard
+                            $('#stat-total-employees').text(total);
+                            
+                            // Rellenar dinámicamente el selector de puestos
+                            actualizarFiltrosPuestos(respuesta.puestos_unicos);
+                            $('#stat-total-roles').text(respuesta.puestos_unicos.length);
+
+                            // Validar si la página actual supera el total de páginas por eliminación
+                            if (paginaActual > totalPaginas && totalPaginas > 0) {
+                                paginaActual = totalPaginas;
+                                cargarEmpleados();
+                                return;
+                            }
+
+                            // Renderizar filas de la tabla
+                            if (empleados.length === 0) {
+                                $('#tbody-empleados').html(`
+                                    <tr>
+                                        <td colspan="4" class="text-center py-5 text-muted">
+                                            <i data-lucide="search" class="d-block mx-auto mb-2 text-slate-300" style="width: 32px; height: 32px;"></i>
+                                            No se encontraron empleados con los criterios de búsqueda actuales.
+                                        </td>
+                                    </tr>
+                                `);
+                                lucide.createIcons();
+                                renderizarPaginacion(0, totalPaginas);
+                                return;
+                            }
+
+                            let htmlFilas = '';
+                            $.each(empleados, function(index, emp) {
+                                const iniciales = emp.nombre.substring(0, 2).toUpperCase();
+                                const fechaReg = emp.fechaCreacion ? new Date(emp.fechaCreacion).toLocaleDateString() : 'N/D';
+
+                                htmlFilas += `
+                                    <tr id="fila-empleado-${emp.id}">
+                                        <td>
+                                            <div class="d-flex align-items-center gap-3">
+                                                <div class="avatar-initials">${iniciales}</div>
+                                                <div>
+                                                    <h6 class="mb-0 fw-bold text-dark">${emp.nombre}</h6>
+                                                    <span class="text-muted d-flex align-items-center gap-1" style="font-size: 0.7rem;">
+                                                        <i data-lucide="calendar" style="width: 11px; height: 11px;"></i>
+                                                        Registrado: ${fechaReg}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="badge-role">
+                                                <i data-lucide="briefcase" class="me-1" style="width: 12px; height: 12px; display: inline-block; vertical-align: middle;"></i>
+                                                ${emp.puesto}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex flex-col gap-1" style="font-size: 0.825rem;">
+                                                <div class="text-secondary">
+                                                    <i data-lucide="mail" class="me-1" style="width: 12px; height: 12px;"></i>
+                                                    <a href="mailto:${emp.correo}" class="text-decoration-none text-slate-700">${emp.correo}</a>
+                                                </div>
+                                                <div class="text-secondary">
+                                                    <i data-lucide="phone" class="me-1" style="width: 12px; height: 12px;"></i>
+                                                    <a href="tel:${emp.telefono}" class="text-decoration-none text-slate-700">${emp.telefono}</a>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="text-end">
+                                            <div class="d-flex justify-content-end gap-1">
+                                                <button class="btn btn-sm btn-outline-primary btn-editar" data-id="${emp.id}" title="Modificar Empleado">
+                                                    <i data-lucide="edit-2" style="width: 14px; height: 14px;"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-danger btn-eliminar" data-id="${emp.id}" data-nombre="${emp.nombre}" title="Eliminar Empleado">
+                                                    <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                `;
+                            });
+
+                            $('#tbody-empleados').html(htmlFilas);
+                            lucide.createIcons();
+
+                            // Renderizar la barra de paginación jQuery
+                            renderizarPaginacion(total, totalPaginas);
+                        } else {
+                            mostrarToast(respuesta.message, 'danger');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        $('#tbody-empleados').html(`
+                            <tr>
+                                <td colspan="4" class="text-center py-5 text-danger">
+                                    <i data-lucide="alert-triangle" class="d-block mx-auto mb-2" style="width: 32px; height: 32px;"></i>
+                                    Error al conectar con la API de Flask: ${xhr.responseJSON ? xhr.responseJSON.message : error}
+                                </td>
+                            </tr>
+                        `);
+                        lucide.createIcons();
+                        mostrarToast("No se pudo sincronizar la lista de empleados.", "danger");
+                    }
+                });
+            }
+
+            // Actualizar dinámicamente las opciones del selector de puestos sin borrar la selección activa
+            function actualizarFiltrosPuestos(puestos) {
+                const $select = $('#select-puesto-filtro');
+                const puestoSeleccionadoAnterior = $select.val();
+                
+                $select.html('<option value="todos">Todos los puestos</option>');
+                $.each(puestos, function(index, p) {
+                    $select.append(`<option value="${p}">${p}</option>`);
+                });
+                
+                // Restablecer el valor seleccionado antes del fetch
+                if (puestos.includes(puestoSeleccionadoAnterior)) {
+                    $select.val(puestoSeleccionadoAnterior);
+                }
+            }
+
+            // Renderizar la barra de controles de paginación
+            function renderizarPaginacion(totalRegistros, totalPaginas) {
+                const inicio = totalRegistros === 0 ? 0 : (paginaActual - 1) * limitePagina + 1;
+                const fin = Math.min(inicio + limitePagina - 1, totalRegistros);
+                
+                $('#paginacion-info').html(`Mostrando registros de <span class="fw-bold text-dark">${inicio}</span> al <span class="fw-bold text-dark">${fin}</span> de un total de <span class="fw-bold text-dark">${totalRegistros}</span> empleados`);
+
+                const $paginacion = $('#paginacion-controles');
+                $paginacion.empty();
+
+                if (totalPaginas <= 1) return; // No requerimos controles si hay una sola página
+
+                // Botón Primera Página
+                $paginacion.append(`
+                    <li class="page-item ${paginaActual === 1 ? 'disabled' : ''}">
+                        <a class="page-link" href="#" data-page="1" title="Primera página">
+                            <i data-lucide="chevrons-left" style="width: 14px; height: 14px;"></i>
+                        </a>
+                    </li>
+                `);
+
+                // Botón Anterior
+                $paginacion.append(`
+                    <li class="page-item ${paginaActual === 1 ? 'disabled' : ''}">
+                        <a class="page-link" href="#" data-page="${paginaActual - 1}" title="Página anterior">
+                            <i data-lucide="chevron-left" style="width: 14px; height: 14px;"></i>
+                        </a>
+                    </li>
+                `);
+
+                // Botones Numéricos (Estilo dinámico de rango)
+                const rangoInicio = Math.max(1, paginaActual - 2);
+                const rangoFin = Math.min(totalPaginas, rangoInicio + 4);
+                
+                for (let i = rangoInicio; i <= rangoFin; i++) {
+                    $paginacion.append(`
+                        <li class="page-item ${paginaActual === i ? 'active' : ''}">
+                            <a class="page-link font-monospace" href="#" data-page="${i}">${i}</a>
+                        </li>
+                    `);
+                }
+
+                // Botón Siguiente
+                $paginacion.append(`
+                    <li class="page-item ${paginaActual === totalPaginas ? 'disabled' : ''}">
+                        <a class="page-link" href="#" data-page="${paginaActual + 1}" title="Página siguiente">
+                            <i data-lucide="chevron-right" style="width: 14px; height: 14px;"></i>
+                        </a>
+                    </li>
+                `);
+
+                // Botón Última Página
+                $paginacion.append(`
+                    <li class="page-item ${paginaActual === totalPaginas ? 'disabled' : ''}">
+                        <a class="page-link" href="#" data-page="${totalPaginas}" title="Última página">
+                            <i data-lucide="chevrons-right" style="width: 14px; height: 14px;"></i>
+                        </a>
+                    </li>
+                `);
+
+                lucide.createIcons();
+            }
+
+            // ==========================================
+            // DELEGACIONES DE EVENTOS E INTERACCIONES
+            // ==========================================
+
+            // 1. Navegación entre páginas al pulsar los controles de jQuery
+            $(document).on('click', '#paginacion-controles .page-link', function(e) {
+                e.preventDefault();
+                const targetPage = $(this).data('page');
+                if (targetPage && targetPage !== paginaActual) {
+                    paginaActual = parseInt(targetPage);
+                    cargarEmpleados();
+                }
+            });
+
+            // 2. Modificación de registros por página
+            $('#select-limite-paginas').on('change', function() {
+                limitePagina = parseInt($(this).val());
+                paginaActual = 1;
+                cargarEmpleados();
+            });
+
+            // 3. Filtrar por texto de búsqueda en tiempo real (con debounce)
+            let searchTimeout;
+            $('#input-buscar').on('input', function() {
+                clearTimeout(searchTimeout);
+                busquedaFiltro = $(this).val();
+                searchTimeout = setTimeout(function() {
+                    paginaActual = 1;
+                    cargarEmpleados();
+                }, 300);
+            });
+
+            // 4. Filtrar por puesto de trabajo seleccionado
+            $('#select-puesto-filtro').on('change', function() {
+                puestoFiltro = $(this).val();
+                paginaActual = 1;
+                cargarEmpleados();
+            });
+
+            // 5. Botón de Recarga manual
+            $('#btn-recargar').on('click', function() {
+                cargarEmpleados();
+                mostrarToast("Base de datos sincronizada exitosamente.", "info");
+            });
+
+            // 6. Abrir formulario en Modo de Registro Nuevo
+            $('#btn-nuevo-empleado').on('click', function() {
+                $('#form-empleado')[0].reset();
+                $('#form-empleado').removeClass('was-validated');
+                $('#form-error-alert').addClass('d-none');
+                $('#input-id').val('');
+                
+                $('#modal-empleado-title span').text('Registrar Empleado');
+                $('#modal-empleado-title i').attr('data-lucide', 'user-plus').addClass('text-primary').removeClass('text-warning');
+                $('#btn-guardar-texto').text('Registrar');
+                
+                lucide.createIcons();
+                modalEmpleado.show();
+            });
+
+            // 7. Abrir formulario en Modo de Modificación (Petición AJAX GET por ID)
+            $(document).on('click', '.btn-editar', function() {
+                const empleadoId = $(this).data('id');
+                
+                $('#form-empleado')[0].reset();
+                $('#form-empleado').removeClass('was-validated');
+                $('#form-error-alert').addClass('d-none');
+
+                // Hacer llamada AJAX para precargar datos individuales del empleado
+                $.ajax({
+                    url: `/api/empleados/${empleadoId}`,
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function(respuesta) {
+                        if (respuesta.status === 'success') {
+                            const emp = respuesta.data;
+                            
+                            // Llenar campos del modal
+                            $('#input-id').val(emp.id);
+                            $('#input-nombre').val(emp.nombre);
+                            $('#input-puesto').val(emp.puesto);
+                            $('#input-correo').val(emp.correo);
+                            $('#input-telefono').val(emp.telefono);
+
+                            // Ajustar estilo del modal para edición
+                            $('#modal-empleado-title span').text('Modificar Empleado');
+                            $('#modal-empleado-title i').attr('data-lucide', 'edit-3').addClass('text-warning').removeClass('text-primary');
+                            $('#btn-guardar-texto').text('Guardar Cambios');
+                            
+                            lucide.createIcons();
+                            modalEmpleado.show();
+                        } else {
+                            mostrarToast(respuesta.message, 'danger');
+                        }
+                    },
+                    error: function() {
+                        mostrarToast("No se pudo precargar la información del empleado.", "danger");
+                    }
+                });
+            });
+
+            // 8. Envío de Formulario (AJAX POST para Nuevo, AJAX PUT para Edición)
+            $('#form-empleado').on('submit', function(e) {
+                e.preventDefault();
+                
+                const form = this;
+                if (!form.checkValidity()) {
+                    e.stopPropagation();
+                    $(form).addClass('was-validated');
+                    return;
+                }
+
+                const empleadoId = $('#input-id').val();
+                const esModificacion = empleadoId !== '';
+                
+                // Recolectar datos en objeto JSON plano
+                const datosFormulario = {
+                    nombre: $('#input-nombre').val(),
+                    puesto: $('#input-puesto').val(),
+                    correo: $('#input-correo').val(),
+                    telefono: $('#input-telefono').val()
+                };
+
+                const urlDestino = esModificacion ? `/api/empleados/${empleadoId}` : '/api/empleados';
+                const tipoPeticion = esModificacion ? 'PUT' : 'POST';
+
+                $('#btn-guardar').prop('disabled', true);
+                $('#btn-guardar-texto').text('Procesando...');
+
+                // Realizar transmisión JSON vía AJAX
+                $.ajax({
+                    url: urlDestino,
+                    type: tipoPeticion,
+                    contentType: 'application/json',
+                    data: JSON.stringify(datosFormulario),
+                    dataType: 'json',
+                    success: function(respuesta) {
+                        $('#btn-guardar').prop('disabled', false);
+                        
+                        if (respuesta.status === 'success') {
+                            modalEmpleado.hide();
+                            cargarEmpleados(); // Recargar tabla
+                            
+                            const accionMsg = esModificacion ? "modificado" : "registrado";
+                            mostrarToast(`El empleado fue ${accionMsg} exitosamente.`, 'success');
+                        } else {
+                            $('#form-error-alert').text(respuesta.message).removeClass('d-none');
+                            $('#btn-guardar-texto').text(esModificacion ? 'Guardar Cambios' : 'Registrar');
+                        }
+                    },
+                    error: function(xhr) {
+                        $('#btn-guardar').prop('disabled', false);
+                        $('#btn-guardar-texto').text(esModificacion ? 'Guardar Cambios' : 'Registrar');
+                        
+                        const errorMsg = xhr.responseJSON ? xhr.responseJSON.message : "Error interno de servidor.";
+                        $('#form-error-alert').text(errorMsg).removeClass('d-none');
+                    }
+                });
+            });
+
+            // 9. Eliminar Empleado mediante AJAX DELETE
+            $(document).on('click', '.btn-eliminar', function() {
+                const empleadoId = $(this).data('id');
+                const empleadoNombre = $(this).data('nombre');
+                
+                if (confirm(`¿Estás seguro de que deseas eliminar a "${empleadoNombre}" de la planilla laboral?`)) {
+                    $.ajax({
+                        url: `/api/empleados/${empleadoId}`,
+                        type: 'DELETE',
+                        dataType: 'json',
+                        success: function(respuesta) {
+                            if (respuesta.status === 'success') {
+                                cargarEmpleados(); // Recargar tabla
+                                mostrarToast(`Empleado eliminado correctamente.`, 'success');
+                            } else {
+                                mostrarToast(respuesta.message, 'danger');
+                            }
+                        },
+                        error: function() {
+                            mostrarToast("Error al intentar procesar la eliminación.", "danger");
+                        }
+                    });
+                }
+            });
+
+            // EJECUTAR CARGA INICIAL
+            cargarEmpleados();
+        });
+    </script>
+</body>
+</html>
+
