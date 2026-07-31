@@ -1,4 +1,5 @@
 import os
+from urllib.parse import urlparse
 from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 import pymysql
@@ -7,22 +8,23 @@ app = Flask(__name__)
 # Permitir peticiones AJAX desde orígenes cruzados (CORS) para desarrollo
 CORS(app)
 
-# Configuración de conexión a la Base de Datos MySQL
-# Reemplaza con tus credenciales locales o usa variables de entorno
-DB_HOST = os.environ.get("DB_HOST", "localhost")
-DB_PORT = os.environ.get("DB_PORT", "3306")
-DB_USER = os.environ.get("DB_USER", "root")
-DB_PASSWORD = os.environ.get("DB_PASSWORD", "")
-DB_NAME = os.environ.get("DB_NAME", "gestion_empleados")
+# URI de conexión a la Base de Datos MySQL de Clever Cloud
+DB_URI = os.environ.get(
+    "DATABASE_URL",
+    "mysql://uygcmtvvz8gumqdt:C2FxiDa5VktjVrwXUem@bartznrl4t9gxafvsqzb-mysql.services.clever-cloud.com:21645/bartznrl4t9gxafvsqzb"
+)
+
 
 def obtener_conexion():
     """Retorna una conexión segura a la base de datos MySQL"""
+    parsed = urlparse(DB_URI)
+    db_name = parsed.path.lstrip("/")
     return pymysql.connect(
-        host=DB_HOST,
-        port=int(DB_PORT),
-        user=DB_USER,
-        password=DB_PASSWORD,
-        database=DB_NAME,
+        host=parsed.hostname,
+        port=parsed.port or 3306,
+        user=parsed.username,
+        password=parsed.password or "",
+        database=db_name,
         cursorclass=pymysql.cursors.DictCursor
     )
 
