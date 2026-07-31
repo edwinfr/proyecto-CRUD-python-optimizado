@@ -1,0 +1,13 @@
+# Entorno y cachés de Python
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+
+# Credenciales y configuración local
+.env
+.env.*
+!.env.example
+
+# Configuración del editor
+.vscode/

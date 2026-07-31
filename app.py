@@ -8,30 +8,53 @@ app = Flask(__name__)
 # Permitir peticiones AJAX desde orígenes cruzados (CORS) para desarrollo
 CORS(app)
 
-# URI de conexión a la Base de Datos MySQL de Clever Cloud
-DB_URI = os.environ.get(
-    "DATABASE_URL",
-    "mysql://uygcmtvvz8gumqdt:C2FxiDa5VktjVrwXUem@bartznrl4t9gxafvsqzb-mysql.services.clever-cloud.com:21645/bartznrl4t9gxafvsqzb"
-)
-
-
 def obtener_conexion():
-    """Retorna una conexión segura a la base de datos MySQL"""
-    parsed = urlparse(DB_URI)
-    db_name = parsed.path.lstrip("/")
+    """Abre una conexión usando las variables inyectadas por Clever Cloud."""
+    database_url = os.environ.get("DATABASE_URL")
+
+    if database_url:
+        # Útil para desarrollo local o proveedores que entregan una URL completa.
+        parsed = urlparse(database_url)
+        config = {
+            "host": parsed.hostname,
+            "port": parsed.port or 3306,
+            "user": parsed.username,
+            "password": parsed.password or "",
+            "database": parsed.path.lstrip("/"),
+        }
+    else:
+        # Estas variables aparecen automáticamente al vincular un add-on MySQL
+        # a la aplicación en Clever Cloud.
+        required = ("MYSQL_ADDON_HOST", "MYSQL_ADDON_USER", "MYSQL_ADDON_DB")
+        missing = [name for name in required if not os.environ.get(name)]
+        if missing:
+            raise RuntimeError(
+                "Faltan variables de conexión MySQL: " + ", ".join(missing)
+            )
+        config = {
+            "host": os.environ["MYSQL_ADDON_HOST"],
+            "port": int(os.environ.get("MYSQL_ADDON_PORT", "3306")),
+            "user": os.environ["MYSQL_ADDON_USER"],
+            "password": os.environ.get("MYSQL_ADDON_PASSWORD", ""),
+            "database": os.environ["MYSQL_ADDON_DB"],
+        }
+
     return pymysql.connect(
-        host=parsed.hostname,
-        port=parsed.port or 3306,
-        user=parsed.username,
-        password=parsed.password or "",
-        database=db_name,
-        cursorclass=pymysql.cursors.DictCursor
+        **config,
+        cursorclass=pymysql.cursors.DictCursor,
+        charset="utf8mb4",
     )
 
 # Ruta principal: Renderiza la interfaz web (frontend)
 @app.route('/')
 def index():
     return render_template('index.html')
+
+
+@app.route('/health')
+def health():
+    """Endpoint ligero para el health check de Clever Cloud."""
+    return jsonify({"status": "ok"})
 
 
 # ==========================================
