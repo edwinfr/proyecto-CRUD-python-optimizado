@@ -1,0 +1,6 @@
+# Clever Cloud build file for Python/Flask app
+# Define the command to start the app on deployment
+build:
+  install: pip install -r requirements.txt
+run:
+  start: python app.py

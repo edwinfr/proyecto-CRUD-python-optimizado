@@ -230,6 +230,9 @@ def eliminar_empleado(empleado_id):
 
 
 if __name__ == '__main__':
-    # Ejecución local de Flask en el puerto 5000
-    print("Iniciando servidor de desarrollo Flask...")
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    # Ejecución local o en Clever Cloud.
+    # Clever Cloud expone el puerto en la variable de entorno PORT.
+    port = int(os.environ.get('PORT', 5000))
+    debug = os.environ.get('FLASK_DEBUG', 'false').lower() in ('1', 'true', 'yes')
+    print(f"Iniciando servidor Flask en 0.0.0.0:{port} (debug={debug})")
+    app.run(host='0.0.0.0', port=port, debug=debug)
